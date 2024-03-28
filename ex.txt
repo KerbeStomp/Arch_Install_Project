@@ -1,0 +1,27 @@
+Starting network setup.
+    Attempting wired connection.
+        Obtaining wired interface.
+            No wired interface detected.
+            Detected wired interface: lo
+        Please ensure Ethernet is plugged in.
+        Press any key to continue
+    Wired connection established
+    Wired connection failed.
+
+    Attempting wireless connection.
+        Obtaining wireless interface.
+            No wireless interface detected.
+            Detected wireless interface: wl0
+        Scanning for networks...
+            Network list
+            Network list
+            Network list
+            Network list
+        Please enter SSID of network to connect to: 
+        Please enter password for network: 
+            Connected to network.
+            Failed to connect to network.
+    Wireless connection established.
+    Wireless connection failed.
+    No connection established...
+    Unknown error establishing connection.
