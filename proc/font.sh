@@ -1,15 +1,19 @@
 #!/bin/bash
 # Use Terminus-16 in chroot; note for chroot module
-DEFAULT_FONT="ter-v32n"
+
+# get_dflt_font: gets default font used for terminal
+get_dflt_font(){
+	local dflt_font="ter-v32n"
+	echo "$dflt_font"
+	return 0
+}
+
 
 set_font() {
     # echo -e "\nSetting terminal font to $DEFAULT_FONT."
-    # Should this print to console always, or should it just preform the function
-    # Module functions should only preform their purpose; logging should be handled by entry.sh
-    # Reasoning: debug functions are not sourced directly, so modules should preform by themselves
-    if setfont "$DEFAULT_FONT"; then
-        return $FONT_OK
-    else
-        return $FONT_ERR
+    local font=$(get_dflt_font)
+    if setfont "$font"; then
+        return 0
+        return 1
     fi
 }
