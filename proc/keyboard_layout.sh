@@ -1,12 +1,22 @@
 #!/bin/bash
-DEFAULT_LAYOUT=us
 
-#set keyboard layout
-set_keyboard_layout() {
-    echo -e "\tSetting keyboard layout to $DEFAULT_LAYOUT."
-    if loadkeys $DEFAULT_LAYOUT; then
-        return $KB_OK
+
+# get_dflt_kb_layout: gets the default keyboard layout
+get_dflt_kb_layout(){
+	local dflt_kb_layout="us"
+	echo "$dflt_kb_layout"
+	return 0
+}
+
+
+# set_keyboard_layout: sets the keyboard layout
+set_kb() {
+    log "$(pad "Setting keyboard layout")"
+    local dft_kb_layout="$(get_dflt_kb_layout)"
+    if loadkeys $dft_kb_layout; then
+        return 0
     else
-        return $KB_ERR 
+        log "$(pad "Error setting keyboard layout")" 3
+        return 1
     fi
 }
