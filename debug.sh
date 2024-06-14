@@ -7,7 +7,7 @@
 # gen_uniq_fn: generates a unique filename
 gen_uniq_fn(){
     local proc_name="AIP"
-    local ts=$(get_ts "%y%m%d_%H%M%S")
+    local ts="$(get_ts "%y%m%d_%H%M%S")"
     local filename="${proc_name}_${ts}.log"
     if [ ! -e "$filename" ]; then
         echo "$filename"
@@ -18,16 +18,26 @@ gen_uniq_fn(){
 }
 
 
-# get_log_file: gets log file to record debug information
-get_log_file(){
-    local file=$(gen_uniq_fn)
+# gen_log_dir: generates a directory to hold log files
+gen_log_dir(){
+    local dir="logs"
+    mkdir -p "$dir"
+    echo "$dir"
+    return 0
+}
+
+
+# gen_log_file: generates a log file to record debug information
+gen_log_file(){
+    local dir="$(gen_log_dir)"
+    local file="$(gen_uniq_fn)"
     if [ -z "$file" ]; then
-        local dflt_log="default_$(date +%H%M%S).log"
+        local dflt_log="./${dir}/default_$(date +%H%M%S).log"
         echo "${dflt_log}"
         return 1
     else
 
-        echo "$file"
+        echo "./${dir}/$file"
         return 0
     fi
 }
@@ -198,4 +208,5 @@ log(){
     return 0
 }
 
-LOG_FILE=$(get_log_file)
+LOG_FILE=$(gen_log_file)
+echo "Log file located at: ${LOG_FILE}"
