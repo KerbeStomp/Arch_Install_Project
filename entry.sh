@@ -12,13 +12,17 @@ log_proc(){
     log "Stage: ${proc_name}"
     "$proc_func"
     local stat=$?
-    if [[ "$stat" == 0 ]]; then
-        log "${proc_func} successfully exited" 1 1
-        return 0
-    else
-        log "Error calling ${proc_func}..." 2 1
+    if [[ "$stat" == 1 ]]; then
+        log "Fatal error encounted in ${proc_func}" 2 1
         return 1
+    elif [[ "$stat" == 2 ]]; then
+        log "Non-fatal error encountered in ${proc_func}..." 3 1
+        return 2
+    else
+	log "Successfully exited ${proc_func}" 1 1
+	return 0
     fi
+
 }
 
 
@@ -28,9 +32,8 @@ entry(){
     local proc_name=("Font" "Keyboard" "Verify Boot" "Network Setup"\
         "System Clock" "Disk Partition" "Disk Format" "Mount Disks"\
         "Install Packages" "Configure System" "Bootloader")
-	local proc_func=("set_font" "set_kb" "vboot" "set_net" "set_clk"\
-        "part_disk" "fmt_disk" "mnt_disk" "ipkgs"\
-        "cfg_sys" "bootldr")
+    local proc_func=("set_font" "set_kb" "verify_boot" "set_net" "set_clk"\
+        "part_disk" "fmt_disk" "mnt_disk" "inst_pkgs" "cfg_sys" "bootldr")
 
     prt_con ""
     log "Starting Arch Install"
@@ -41,7 +44,7 @@ entry(){
         local proc_stat=$?
         prt_con ""
 
-        if [[ proc_stat -ne 0 ]]; then
+        if [[ proc_stat -eq 1 ]]; then
             log "Error during installation..." 2
             prt_con ""
             return 1
