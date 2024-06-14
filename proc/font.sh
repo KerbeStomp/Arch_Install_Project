@@ -1,20 +1,23 @@
 #!/bin/bash
 # Use Terminus-16 in chroot; note for chroot module
 
-# get_dflt_font: gets default font used for terminal
+
+# get_dflt_font: gets the default terminal font
 get_dflt_font(){
-	local dflt_font="ter-v32n"
+	local dflt_font="ter-v24n"
 	echo "$dflt_font"
 	return 0
 }
 
 
+# set_font: sets the terminal font
 set_font() {
-    log "Setting terminal font" 
+    log "$(pad "Setting terminal font")"
     local font=$(get_dflt_font)
     if setfont "$font"; then
         return 0
     else
-        return 1
+        log "$(pad "Error setting terminal font")" 3
+        return 2
     fi
 }
