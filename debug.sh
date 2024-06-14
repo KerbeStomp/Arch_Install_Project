@@ -43,37 +43,13 @@ gen_log_file(){
 }
 
 
-# gen_pad: creates padding of spaces
-# args: pad level
-gen_pad(){
-    local pad_lvl="$1"
-    local pad=$(printf "%*s" "$pad_lvl" "")
-    echo "$pad"
-    return 0
-}
-
-
-# rplc_spc: replaces all space a string with a character
-# args: string, character 
-rplc_spc(){
+# pad: adds a tab padding to the front of a string
+# args: string
+pad(){
     local str="$1"
-    local char="$2"
-    local new_str=$(echo "$str" | tr ' ' $char)
-    echo "$new_str"
-    return 0
-}
-
-
-# add_pad: adds padding to the front of a string
-# args: string, pad level (optional), padding char (optional)
-add_pad(){
-    local str="$1"
-    local pad_lvl="${2:-0}"
-    local pad_char="${3:-\t}"
-    local pad=$(gen_pad "$pad_lvl")
-    local new_pad=$(rplc_spc "$pad" "$pad_char")
-    local new_str="${new_pad}${str}"
-    echo "$new_str"
+    local pad_char="\t"
+    local pad_str="${pad_char}${str}"
+    echo "$pad_str"
     return 0
 }
 
@@ -97,7 +73,7 @@ get_elem(){
     local idx="$1"
     shift
     local arr=("$@")
-    local max_idx=$((${#arr[@]} - 1))
+    local max_idx="$((${#arr[@]} - 1))"
     if val_idx "$idx" "$max_idx"; then
         echo "${arr[$idx]}"
         return 0
@@ -107,15 +83,21 @@ get_elem(){
 }
 
 
-# add_tag: applys tag to string for logging, separated by pipe |
-# args: string, tag index
-add_tag(){
+# add_sev: appends a severity to string, seprareted by a pipe
+# args: string, severity index
+add_sev(){
     local str="$1"
-    local tag_idx="$2"
-    # 0=DEBUG; 1=OK; 2=INFO; 3=WARN; 4=ERROR; 5=UKWN
-    local tag_arr=("INFO" "OK" "ERROR" "WARN")
-    local tag=$(get_elem "$tag_idx" "${tag_arr[@]}")
-    local new_str="${tag}|${str}"
+    local sev_idx="$2"
+    # 0=INFO; 1=OK; 2=ERROR; 3=WARN
+    local sev_arr=("INFO" "OK" "ERROR" "WARN")
+    local sev=$(get_elem "$sev_idx" "${sev_arr[@]}")
+
+    if [[ -z "$sev" ]]; then
+        echo "${str}|UNKN"
+        return 1
+    fi
+
+    local new_str="${str}|${sev}"
     echo "$new_str"
     return 0
 }
@@ -125,32 +107,31 @@ add_tag(){
 # args: format
 get_ts(){
     local fmt="$1"
-    local ts=$(date +"$fmt")
+    local ts="$(date +"$fmt")"
     echo "$ts"
     return 0
 }
 
 
-# add_ts: adds timestamp to the beginning of a string, separeated by pipe |
+# add_ts: appends a timestamp to string, separeated by a pipe
 # args: string, format
 add_ts(){
     local str="$1"
     local fmt="$2"
-    local ts=$(get_ts "$fmt")
-    local new_str="${ts}|${str}"
+    local ts="$(get_ts "$fmt")"
+    local new_str="${str}|${ts}"
     echo "$new_str"
     return 0
 }
 
 
-# add_info: adds timestamp and debug tag to string
-# args: string, tag index
+# add_info: adds timestamp and severity to string
+# args: string, severity index
 add_info(){
     local str="$1"
-    local tag_idx="$2"
-    local tag_str=$(add_tag "$str" "$tag_idx")
-    local ts_tag_str=$(add_ts "$tag_str" "%X")
-    echo "$ts_tag_str"
+    local sev_idx="$2"
+    local info_str="$(add_ts "$(add_sev "$str" "$sev_idx")" "%X")"
+    echo "$info_str"
     return 0
 }
 
@@ -159,54 +140,77 @@ add_info(){
 # args: string
 fmt_str(){
     local str="$1"
-    local fmt_str=$(awk -F '|' '{ printf \
-        "%-10s %-7s | %s\n", "["$1"]", "["$2"]", $3 }' <<< "$str")
-            echo "$fmt_str"
-            return 0
-        }
+    local fmt_str="$(awk -F '|' '{ printf \
+        "%-10s %7s | %s\n", "["$3"]", "["$2"]", $1 }' <<< "$str")"
+    echo "$fmt_str"
+    return 0
+}
 
 
 # prt_con: prints string to console
 # args: string
 prt_con(){
     local str="$1"
-    if echo "$str"; then
-        return 0
-    else
-        return 1
-    fi
+    echo -e "$str" > /dev/tty
+    return $?
 }
 
 
-
-# prt_file: prints string to file
-# args: string, file
-prt_file(){
+# prt_dbg: prints string to debug file
+# args: string
+prt_dbg(){
     local str="$1"
-    local file="$2"
-    if echo "$str" >> "$file"; then
-        return 0
-    else
-        return 1
-    fi
+    echo -e "$str" >> "$LOG_FILE"
+    return $?
 }
 
 
-# log: prints string to both console and debug file
-# args: string, tag index (optional), pad level (optional), file (optional)
+# log: prints string to both the console and a debug file
+# args: string, severity index (optional)
 log(){
     local str="$1"
-    local tag_idx="${2:-0}"
-    local pad_lvl="${3:-0}"
-    local file="${4:-$LOG_FILE}"
-    local con_str=$(add_pad "$str" "$pad_lvl")
-    local dbg_str=$(add_info "$con_str" "$tag_idx")
-    local fmt_dbg_str=$(fmt_str "$dbg_str")
+    local sev_idx="${2:-0}"
+    local dbg_str="$(fmt_str "$(add_info "$str" "$sev_idx")")"
 
-    prt_con "$con_str"
-    prt_file "$fmt_dbg_str" "$file"
+    prt_con "$str"
+    prt_dbg "$dbg_str"
     return 0
 }
 
+
+# qry_usr: ask the user a question and get input
+# args: message, hide (optional)
+qry_usr(){
+    local msg="$1"
+    local hide="${2:-0}"
+    local rsp
+    echo -e -n "$msg" > /dev/tty
+
+    if [[ 0 == "$hide" ]]; then
+        read -e rsp
+        prt_dbg "$(fmt_str "$(add_info "$msg" 0)")${rsp}"
+        echo "$rsp"
+        return 0
+    else
+        read -e -s rsp
+        echo > /dev/tty
+        prt_dbg "$(fmt_str "$(add_info "$msg" 0)")"
+        echo "$rsp"
+        return 0
+    fi
+}
+
+
+# wait_usr: prints prompt to user and waits for keypress
+# args: message
+wait_usr(){
+    local msg="$1"
+    echo -e -n "$msg" > /dev/tty
+    prt_dbg "$(fmt_str "$(add_info "$msg" 0)")"
+    read -n 1 -s
+    return 0
+}
+
+
 LOG_FILE=$(gen_log_file)
-echo "Log file located at: ${LOG_FILE}"
+prt_con "Log file located at: ${LOG_FILE}\n"
