@@ -1,4 +1,4 @@
-#`!/bin/bash
+#!/bin/bash
 
 
 # install.sh handles the permissions and sourcing
@@ -46,7 +46,7 @@ file_perms(){
         chmod +x "$file"
         return 0
     else
-        return 152
+        return 1
     fi
 }
 
@@ -125,7 +125,6 @@ start_install(){
 
     echo "${flt_files[@]}"
 
-    return -1
     entry
 }
 
