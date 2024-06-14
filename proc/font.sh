@@ -10,10 +10,11 @@ get_dflt_font(){
 
 
 set_font() {
-    # echo -e "\nSetting terminal font to $DEFAULT_FONT."
+    log "Setting terminal font" 
     local font=$(get_dflt_font)
     if setfont "$font"; then
         return 0
+    else
         return 1
     fi
 }

@@ -84,7 +84,7 @@ filter(){
     local out_arr=()
 
     for item in "${in_arr[@]}"; do
-        if "$cond" "$item"; then
+        if $("$cond" "$item"); then
             out_arr+=("$item")
         fi
     done
@@ -92,10 +92,17 @@ filter(){
 }
 
 
-# is_needed: determine if a .sh is needed for install
+# is_needed: determine if a file is needed for installation
 # args: file path
 is_needed(){
     local file="$1"
+    local inst_files=("font.sh")
+    local inst_path="./proc/"
+    for item in "${inst_files[@]}"; do
+        if [[ "${inst_path}${item}" == "$file" ]]; then
+            return 0
+        fi
+    done
     return 1
 }
 
@@ -114,7 +121,7 @@ start_install(){
     # enable execute permissions
     file_perms "$dbg_path" || return 1
     file_perms "$exit_path" || return 1
-    map file_perms "${flt_files[@]}" || return 1
+    map file_perms "${flt_files[@]}" || return 15
     file_perms "$entry_path" || return 1
 
     # source files
@@ -123,7 +130,6 @@ start_install(){
     map src_file "${flt_files[@]}" || return 1
     src_file "$entry_path" || return 1
 
-    echo "${flt_files[@]}"
 
     entry
 }

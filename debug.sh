@@ -113,7 +113,7 @@ add_tag(){
     local str="$1"
     local tag_idx="$2"
     # 0=DEBUG; 1=OK; 2=INFO; 3=WARN; 4=ERROR; 5=UKWN
-    local tag_arr=("DEBUG" "OK" "INFO" "WARN" "ERROR" "UKWN")
+    local tag_arr=("INFO" "OK" "ERROR" "WARN")
     local tag=$(get_elem "$tag_idx" "${tag_arr[@]}")
     local new_str="${tag}|${str}"
     echo "$new_str"
