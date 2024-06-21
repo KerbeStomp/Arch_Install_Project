@@ -162,10 +162,10 @@ try_net(){
 	local conn=$?
 
 	if [[ 1 == "$conn" ]]; then
-		log "$(pad "Failed to connect to ${ssid}")"
+		log "$(pad "$(pad "Failed to connect to ${ssid}\n")")" 3
 		return 1
 	elif [[ 0 == "$conn" ]]; then
-		log "$(pad "Successfully connected to ${ssid}")"
+		log "$(pad "$(pad "Successfully connected to ${ssid}")")" 1
 		return 0
 	fi
 }
@@ -174,7 +174,6 @@ try_net(){
 # wait_wifi: waits until a wifi connection is established
 # args: network interface
 wait_wifi(){
-    # set up wifi
     	local wifi_intf="$1"
 	start_iwd
 	local iwd_stat=$?
@@ -183,7 +182,7 @@ wait_wifi(){
 		return 1
 	fi
 
-	while true; do
+	while  ! chk_conn "$wifi_intf"; do
 		local net_list=($(get_net "$wifi_intf"))
 		show_net "${net_list[@]}"
 
@@ -193,7 +192,8 @@ wait_wifi(){
     		local val_ssid=$?
 
     		if [[ "$val_ssid" == 1 ]]; then
-			log "$(pad "Invalid SSID inputted")" 3
+			log "$(pad "$(pad "Invalid SSID inputted\n")")" 3
+			sleep 1
 			continue
     		fi
 
@@ -203,7 +203,7 @@ wait_wifi(){
 		if try_net "$wifi_intf" "$ssid" "$pass"; then
 			return 0
 		fi
-
+		sleep 1
 	done
 }
 
@@ -232,7 +232,6 @@ try_wifi(){
 
 # set_net: set up a network connection
 set_net(){
-    log "Starting network setup"
 	if try_eth; then
 		return 0
 	elif try_wifi; then
