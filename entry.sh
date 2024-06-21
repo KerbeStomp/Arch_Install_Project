@@ -51,6 +51,7 @@ entry(){
         fi
     done
 
+    show_kb
     return 0
 }
 
