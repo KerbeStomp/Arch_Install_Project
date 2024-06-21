@@ -35,6 +35,7 @@ entry(){
     local proc_func=("set_font" "set_kb" "verify_boot" "set_net" "set_clk"\
         "part_disk" "fmt_disk" "mnt_disk" "inst_pkgs" "cfg_sys" "bootldr")
 
+    hide_kb
     log "Starting Arch installation"
     log ""
 

@@ -4,6 +4,16 @@
 # debug.sh holds functions used for printing to console and debug files
 
 
+# get_ts: gets timestamp with specified format
+# args: format
+get_ts(){
+    local fmt="$1"
+    local ts="$(date +"$fmt")"
+    echo "$ts"
+    return 0
+}
+
+
 # gen_uniq_fn: generates a unique filename
 gen_uniq_fn(){
     local proc_name="AIP"
@@ -103,16 +113,6 @@ add_sev(){
 }
 
 
-# get_ts: gets timestamp with specified format
-# args: format
-get_ts(){
-    local fmt="$1"
-    local ts="$(date +"$fmt")"
-    echo "$ts"
-    return 0
-}
-
-
 # add_ts: appends a timestamp to string, separeated by a pipe
 # args: string, format
 add_ts(){
@@ -178,6 +178,21 @@ log(){
 }
 
 
+# show_kb: allows keyboard input in the terminal
+show_kb(){
+	while read -r -t 0.1; do : ; done
+	stty ixon ixoff echo icanon
+	return 0
+}
+
+
+# hide_kb: disables keyboard input in the terminal
+hide_kb(){
+	stty -ixon -ixoff -echo -icanon min 1 time 0
+	return 0
+}
+
+
 # qry_usr: ask the user a question and get input
 # args: message, hide (optional)
 qry_usr(){
@@ -186,18 +201,20 @@ qry_usr(){
     local rsp
     echo -e -n "$msg" > /dev/tty
 
+    show_kb
     if [[ 0 == "$hide" ]]; then
-        read -e rsp
+       	read rsp
+
         prt_dbg "$(fmt_str "$(add_info "$msg" 0)")${rsp}"
         echo "$rsp"
-        return 0
     else
-        read -e -s rsp
+        read -s rsp
         echo > /dev/tty
         prt_dbg "$(fmt_str "$(add_info "$msg" 0)")"
         echo "$rsp"
-        return 0
     fi
+    hide_kb
+    return 0
 }
 
 
