@@ -30,16 +30,16 @@ log_proc(){
 # args: error codes, script dir
 entry(){
     local proc_name=("Font" "Keyboard" "Verify Boot" "Network Setup"\
-        "System Clock" "Disk Partition" "Disk Format" "Mount Disks"\
-        "Install Packages" "Configure System" "Bootloader")
+        "System Clock" "Disk Setup" "Install Packages"\
+        "Configure System" "Bootloader")
     local proc_func=("set_font" "set_kb" "verify_boot" "set_net" "set_clk"\
-        "part_disk" "fmt_disk" "mnt_disk" "inst_pkgs" "cfg_sys" "bootldr")
+        "set_dev" "inst_pkgs" "cfg_sys" "bootldr")
 
     hide_kb
     log "Starting Arch installation"
     log ""
 
-    for proc in {0..10}; do
+    for proc in {0..8}; do
 	    log_proc "${proc_name[${proc}]}" "${proc_func[${proc}]}"
 	    local proc_stat=$?
         log ""
