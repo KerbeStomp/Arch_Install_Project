@@ -36,17 +36,17 @@ inst_pkgs(){
 		continue
 	fi
 
+	log "$(pad "Installing packages, please wait...")"
+    local core_pkgs="base linux linux-firmware vim networkmanager man-db \
+        man-pages texinfo grub efibootmgr"
 	if [[ "$inst_type" == 1 ]]; then
-		pacstrap -K /mnt base linux linux-firmware networkmanager\
-			man-db man-pages texinfo
+		pacstrap -K /mnt $core_pkgs > /dev/null 2>&1
 		local pkgs_stat=$?
 	elif [[ "$inst_type" == 2 ]]; then
-		pacstrap -K /mnt base linux linux-firmware networkmanager\
-			man-db man-pages texinfo amd-ucode
+		pacstrap -K /mnt $core_pkgs amd-ucode > /dev/null 2>&1
 		local pkgs_stat=$?
 	elif [[ "$inst_type" == 3 ]]; then
-		pacstrap -K /mnt base linux linux-firmware networkmanager\
-			man-db man-pages texinfo intel-ucode
+		pacstrap -K /mnt  $core_pkgs intel-ucode > /dev/null 2>&1
 		local pkgs_stat=$?
 	fi
 
