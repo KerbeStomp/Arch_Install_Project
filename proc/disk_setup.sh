@@ -245,6 +245,8 @@ set_dev(){
 	fmt_dev "$dev" "$boot_type"
 	mnt_dev "$dev" "$boot_type"
     fi
+
+    echo "$dev" > /tmp/inst_dev
     return 0
     done
 } 
