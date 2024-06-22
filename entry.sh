@@ -31,15 +31,15 @@ log_proc(){
 entry(){
     local proc_name=("Font" "Keyboard" "Verify Boot" "Network Setup"\
         "System Clock" "Disk Setup" "Install Packages"\
-        "Configure System" "Bootloader")
+        "Configure System" "Bootloader" "Reboot")
     local proc_func=("set_font" "set_kb" "verify_boot" "set_net" "set_clk"\
-        "set_dev" "inst_pkgs" "cfg_sys")
+        "set_dev" "inst_pkgs" "cfg_sys" "rbt_sys")
 
     hide_kb
     log "Starting Arch installation"
     log ""
 
-    for proc in {0..7}; do
+    for proc in {0..8}; do
 	    log_proc "${proc_name[${proc}]}" "${proc_func[${proc}]}"
 	    local proc_stat=$?
         log ""
