@@ -114,7 +114,6 @@ start_install(){
     # get file paths
     local inst_dir=$(get_inst_dir)
     local dbg_path=$(get_path "$inst_dir" "debug.sh")
-    local exit_path=$(get_path "$inst_dir" "exit_codes.sh")
     local proc_path=$(get_path "$inst_dir" "proc")
     local proc_files=($(get_files "$proc_path"))
     local flt_files=($(filter is_needed ${proc_files[@]}))
@@ -122,13 +121,11 @@ start_install(){
 
     # enable execute permissions
     file_perms "$dbg_path" || return 1
-    file_perms "$exit_path" || return 1
     map file_perms "${flt_files[@]}" || return 15
     file_perms "$entry_path" || return 1
 
     # source files
     src_file "$dbg_path" || return 1
-    src_file "$exit_path" || return 1
     map src_file "${flt_files[@]}" || return 1
     src_file "$entry_path" || return 1
 
