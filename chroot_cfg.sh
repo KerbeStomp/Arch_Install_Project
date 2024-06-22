@@ -1,6 +1,15 @@
 #!/bin/bash
 
 
+# prt_con: prints string to console
+# args: string
+prt_con(){
+    local str="$1"
+    echo -e "$str" > /dev/tty
+    return $?
+}
+
+
 # pad: adds a tab padding to the front of a string
 # args: string
 pad(){
@@ -51,13 +60,13 @@ qry_usr(){
 
 # set_tz: set the time zone
 set_tz(){
-    echo "$(pad "Setting time zone")"
+    prt_con "$(pad "$(pad "Setting time zone")")"
     ln -sf usr/share/zoneinfo/US/Pacific /etc/localtime > /dev/null 2>&1
     local tz_stat=$?
     if [[ "$tz_stat" == 0 ]]; then
         return 0
     else
-        echo "$(pad "Error setting time zone")"
+        prt_con "$(pad "$(pad "$(pad "Error setting time zone")")")"
         return 1
     fi
 }
@@ -65,26 +74,26 @@ set_tz(){
 
 # upd_clk: update hardware clock
 upd_clk(){
-    echo "$(pad "Updating hardware clock")"
+    prt_con "$(pad "$(pad "Updating hardware clock")")"
     hwclock --systohc > /dev/null 2>&1
     local tz_stat=$?
     if [[ "$tz_stat" == 0 ]]; then
         return 0
     else
-        echo "$(pad "Error updating hardware clock")"
+        prt_con "$(pad "$(pad "$(pad "Error updating hardware clock")")")"
         return 1
     fi
 }
 
 # clk_sync: enable time synchronization with systemd-timesyncd
 clk_sync(){
-    echo "$(pad "Enabling time synchronization")"
+    prt_con "$(pad "$(pad "Enabling time synchronization")")"
     systemctl enable systemd-timesyncd.service > /dev/null 2>&1
     local sync_stat=$?
     if [[ "$sync_stat" == 0 ]]; then
         return 0
     else
-        echo "$(pad "Error enabling time synchronization")"
+        prt_con "$(pad "$(pad "$(pad "Error enabling time synchronization")")")"
         return 1
     fi
 }
@@ -92,13 +101,13 @@ clk_sync(){
 
 # enb_net: enable NetworkManager
 enb_net(){
-    echo "$(pad "Enabling NetworkManager")"
+    prt_con "$(pad "$(pad "Enabling NetworkManager")")"
     systemctl enable NetworkManager > /dev/null 2>&1
     local enb_stat=$?
     if [[ "$enb_stat" == 0 ]]; then
         return 0
     else
-        echo "$(pad "Error NetworkManager")" 
+        prt_con "$(pad "$(pad "$(pad "Error NetworkManager")")")"
         return 1
     fi
 }
@@ -106,7 +115,7 @@ enb_net(){
 
 # gen_loc: generates locales
 gen_loc(){
-    echo "$(pad "Generating locales")"
+    prt_con "$(pad "$(pad "Generating locales")")"
     sed -i '/en_US.UTF-8/ s/^#//' /etc/locale.gen
     locale-gen > /dev/null 2>&1
     echo "LANG=en_US.UTF-8" > /etc/locale.conf
@@ -120,7 +129,7 @@ set_hn(){
         local hostname="$(qry_usr "$(pad "Enter a hostname: ")")"
 
         if [[ -z "$hostname" ]]; then
-            echo "$(pad "Invalid hostname")" 
+            prt_con "$(pad "$(pad "Invalid hostname")")"
             sleep 1
             continue
         fi
@@ -128,7 +137,7 @@ set_hn(){
     done
 
     echo "$hostname" > /etc/hostname
-    echo "$(pad "Hostname set to ${hostname}")"
+    prt_con "$(pad "$(pad "Hostname set to ${hostname}")")"
     return 0
 }
 
@@ -139,7 +148,7 @@ set_pass(){
         local root_pass="$(qry_usr "$(pad "Please set root password: ")")"
         
         if [[ -z "$root_pass" ]]; then
-            echo "$(pad "Invalid password")" 
+            prt_con "$(pad "$(pad "Invalid password")")"
             sleep 1
             continue
         fi
@@ -149,7 +158,7 @@ set_pass(){
         if [[ "$root_pass" == "$conf_pass" ]]; then
             break
         else
-            echo "$(pad "Passwords did not match")"
+            prt_con "$(pad "$(pad "Passwords did not match")")"
             sleep 1
             continue
         fi
@@ -158,16 +167,49 @@ set_pass(){
     echo "$root_pass" | passwd -s root
     local pass_stat=$?
     if [[ "$pass_stat" == 0 ]]; then
-        echo "$(pad "Root password set")"
+        prt_con "$(pad "$(pad "Root password set")")"
         return 0
     else
-        echo "$(pad "Error setting root password")"
+        prt_con "$(pad "$(pad "Error setting root password")")"
         return 1
     fi
 }
 
+# chk_esp: check if a EFI system partition is used
+chk_esp(){
+    local esp_dev="$(fdisk -l | grep EFI | awk '{ print $1 }' | head -n 1)"
+    if [[ -z "$esp_dev" ]]; then
+        return 1
+    else
+        echo "$esp_dev"
+        return 0
+    fi
+}
+
+
+set_grub(){
+    local dev="$1"
+    local efi="$(chk_esp)"
+
+    if [[ -z "$efi" ]]; then
+        # grub with MBR
+        grub-install --target=i386-pc "$dev"
+    else
+        # grub with UEFI
+        mount --mkdir "$efi" /mnt/boot
+        mkdir -p /mnt/boot/EFI/GRUB
+        grub-install --target=x86_64-efi --efi-directory=/mnt/boot \
+            --bootloader-id=GRUB
+    fi
+
+    # generate grub file
+    grub-mkconfig -o /boot/grub/grub.cfg
+    return 0
+}
+
 
 set_chroot(){
+    local dev="$1"
     set_tz
     upd_clk
     clk_sync
@@ -175,7 +217,9 @@ set_chroot(){
     gen_loc
     set_hn
     set_pass
+    set_grub "$dev"
     exit
 }
 
-set_chroot
+dev="$1"
+set_chroot "$dev"

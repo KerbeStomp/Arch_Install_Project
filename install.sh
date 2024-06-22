@@ -98,7 +98,7 @@ is_needed(){
     local file="$1"
     local inst_files=("font.sh" "keyboard_layout.sh" "verify_boot.sh"\
           "network_setup.sh" "system_clock.sh" "disk_setup.sh"\
-          "packages.sh" "config_system.sh" "bootloader.sh")
+          "packages.sh" "config_system.sh") 
     local inst_path="./proc/"
     for item in "${inst_files[@]}"; do
         if [[ "${inst_path}${item}" == "$file" ]]; then

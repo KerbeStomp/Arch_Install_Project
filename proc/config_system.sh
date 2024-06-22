@@ -1,6 +1,14 @@
 #!/bin/bash
 
 
+# get_inst_dev: gets the block device used for installation
+get_inst_dev(){
+    local dev="$(cat /tmp/inst_dev)"
+    echo "$dev"
+    return 0
+}
+
+
 # gen_fstab: generates an fstab file
 # args: define type
 gen_fstab(){
@@ -47,10 +55,12 @@ cfg_perms(){
 
 
 # chroot: change root into the new system
+# args: block device
 chroot(){
+    local dev="$1"
     log "$(pad "Chrooting into system")"
     show_kb
-    arch-chroot /mnt /chroot_cfg.sh
+    arch-chroot /mnt /chroot_cfg.sh "$dev"
     hide_kb
     local chroot_stat=$?
     if [[ "$chroot_stat" == 0 ]]; then
@@ -78,10 +88,11 @@ rm_cfg(){
 
 # cfg_sys: configure the user system
 cfg_sys(){
+    local dev="$(get_inst_dev)"
     gen_fstab "-U"
     cp_cfg
     cfg_perms
-    chroot
+    chroot "$dev"
     rm_cfg
         return 0
 }
