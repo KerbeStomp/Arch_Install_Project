@@ -127,7 +127,7 @@ fmt_part(){
     local part_type="$2"
 
 	log "$(pad "$(pad "Formatting ${part} as ${part_type}")")"
-    if [[ "Root" == "$part_type" ]]; then
+    if [[ "Root" == "$part_type" || "Home" == "$part_type" ]]; then
         mkfs.ext4 "$part" > /dev/null 2>&1
         return $?
     elif [[ "Swap" == "$part_type" ]]; then
@@ -157,6 +157,7 @@ fmt_dev(){
         fmt_part "${dev}1" "EFI"
         fmt_part "${dev}2" "Swap"
         fmt_part "${dev}3" "Root"
+        fmt_part "${dev}4" "Home"
 	log "$(pad "$(pad "Successfully formatted disk")")" 1
     else
 	log "$(pad "$(pad "Error formatting disk")")" 1

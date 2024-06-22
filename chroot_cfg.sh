@@ -145,7 +145,7 @@ set_hn(){
 # set_pass: sets the user password
 set_pass(){
     while true; do
-        local root_pass="$(qry_usr "$(pad "Please set root password: ")")"
+        local root_pass="$(qry_usr "$(pad "Please set root password: ")" 1)"
         
         if [[ -z "$root_pass" ]]; then
             prt_con "$(pad "$(pad "Invalid password")")"
@@ -153,7 +153,7 @@ set_pass(){
             continue
         fi
 
-        local conf_pass="$(qry_usr "$(pad "Please confirm root password: ")")"
+        local conf_pass="$(qry_usr "$(pad "Please confirm root password: ")" 1)"
 
         if [[ "$root_pass" == "$conf_pass" ]]; then
             break
@@ -196,14 +196,17 @@ set_grub(){
         grub-install --target=i386-pc "$dev"
     else
         # grub with UEFI
-        mount --mkdir "$efi" /mnt/boot
-        mkdir -p /mnt/boot/EFI/GRUB
+        mount --mkdir "$efi" /mnt/boot > /dev/null 2>&1
+        mkdir -p /mnt/boot/EFI/GRUB > /dev/null 2>&1
+	prt_con "$(pad "Installing GRUB")"
         grub-install --target=x86_64-efi --efi-directory=/mnt/boot \
-            --bootloader-id=GRUB
+            --bootloader-id=GRUB > /dev/null 2>&1
     fi
 
     # generate grub file
-    grub-mkconfig -o /boot/grub/grub.cfg
+    prt_con "$(pad "Generating GRUB config file")"
+    grub-mkconfig -o /boot/grub/grub.cfg > /dev/null 2>&1
+    umount /mnt/boot > /dev/null 2>&1
     return 0
 }
 
