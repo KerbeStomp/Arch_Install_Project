@@ -38,15 +38,20 @@ inst_pkgs(){
 
 	log "$(pad "Installing packages, please wait...")"
     local core_pkgs="base linux linux-firmware vim networkmanager man-db \
-        man-pages texinfo grub efibootmgr"
+        man-pages texinfo grub efibootmgr sudo vivaldi git"
+    local disp_pkgs="hyprland kitty pipewire wireplumber qt5-wayland \
+        qt6-wayland xdg-desktop-portal-hyprland xdg-desktop-portal-gtk \
+        dunst polkit polkit-kde-agent pipewire-jack gnu-free-fonts sddm \
+        network-manager-applet hyprpaper hypridle hyprlock wofi \
+        udiskie waybar"
 	if [[ "$inst_type" == 1 ]]; then
-		pacstrap -K /mnt $core_pkgs > /dev/null 2>&1
+		pacstrap -K /mnt $core_pkgs $disp_pkgs > /dev/null 2>&1
 		local pkgs_stat=$?
 	elif [[ "$inst_type" == 2 ]]; then
-		pacstrap -K /mnt $core_pkgs amd-ucode > /dev/null 2>&1
+		pacstrap -K /mnt $core_pkgs $disp_pkgs amd-ucode > /dev/null 2>&1
 		local pkgs_stat=$?
 	elif [[ "$inst_type" == 3 ]]; then
-		pacstrap -K /mnt  $core_pkgs intel-ucode > /dev/null 2>&1
+		pacstrap -K /mnt  $core_pkgs $disp_pkgs intel-ucode > /dev/null 2>&1
 		local pkgs_stat=$?
 	fi
 
